@@ -62,7 +62,7 @@ export class TransactionHistoryFetcher {
     }
 
     // Sort chronologically
-    allTransactions.sort((a, b) => a.timestamp - b.timestamp);
+    allTransactions.sort((a, b) => b.timestamp - a.timestamp);
 
     return allTransactions;
   }
