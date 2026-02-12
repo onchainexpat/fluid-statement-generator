@@ -2,6 +2,12 @@
 
 Generate professional PDF margin account statements for your [Fluid](https://fluid.io) DeFi lending and borrowing positions. Runs entirely in your browser — no server, no data collection, complete privacy.
 
+![Fluid.io Statement App](fluid-app-screenshot.png)
+
+### Sample PDF Output
+
+![Sample PDF Output](fluid-pdf-output.png)
+
 ## Privacy First
 
 - **100% Local** — All processing happens in your browser. Nothing is sent to any backend server.
