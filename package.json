@@ -1,0 +1,30 @@
+{
+  "name": "fluid-statement-generator",
+  "version": "1.0.0",
+  "description": "Generate professional PDF statements for Fluid.io DeFi positions - runs locally in your browser",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js",
+    "serve": "node serve.js"
+  },
+  "keywords": [
+    "fluid",
+    "defi",
+    "ethereum",
+    "statement",
+    "pdf",
+    "lending",
+    "borrowing",
+    "privacy",
+    "local"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onchainexpat/fluid-statement-generator"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
+  }
+}

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluid.io Statement</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Custom Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            fluid: {
+              primary: '#1a365d',
+              secondary: '#2d3748',
+              accent: '#3182ce',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    /* PDF Preview Container */
+    .pdf-preview {
+      background: #525659;
+      background-image: 
+        linear-gradient(45deg, #4a4a4a 25%, transparent 25%),
+        linear-gradient(-45deg, #4a4a4a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #4a4a4a 75%),
+        linear-gradient(-45deg, transparent 75%, #4a4a4a 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    
+    .pdf-preview iframe {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3182ce;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Smooth transitions */
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-fluid-primary text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <img id="headerLogo" alt="Fluid" class="w-10 h-10" />
+          <div>
+            <h1 class="text-2xl font-bold">Fluid.io Statement</h1>
+            <p class="text-blue-200 text-sm">Generate professional PDF statements for your DeFi positions</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-xs bg-green-500 px-2 py-1 rounded-full">🔒 Local Only</span>
+          <a href="https://github.com/onchainexpat/fluid-statement-generator" 
+             target="_blank" 
+             class="text-blue-200 hover:text-white text-sm">
+            GitHub ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left Panel - Configuration -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Configuration</h2>
+          
+          <form id="configForm" class="space-y-4">
+            
+            <!-- Network Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Network</label>
+              <select id="network" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="mainnet">Ethereum Mainnet</option>
+                <!-- TODO: Add L2 support -->
+                <!-- <option value="arbitrum">Arbitrum One</option> -->
+                <!-- <option value="base">Base</option> -->
+              </select>
+            </div>
+            
+            <!-- Etherscan API Key -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Etherscan API Key
+                <span class="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input type="text"
+                     id="etherscanApiKey"
+                     placeholder="Your Etherscan API key"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+              <p class="text-xs text-gray-500 mt-1">Enables transaction history in your statement</p>
+            </div>
+
+            <!-- RPC URL -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                RPC URL
+                <span class="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input type="text"
+                     id="rpcUrl"
+                     placeholder="https://ethereum-rpc.publicnode.com"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+              <p class="text-xs text-gray-500 mt-1">Leave blank for public RPC, or use your own for privacy</p>
+            </div>
+            
+            <!-- Wallet Address -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Wallet Address <span class="text-red-500">*</span>
+              </label>
+              <input type="text"
+                     id="walletAddress"
+                     placeholder="0x..."
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm">
+              <div class="mt-1.5 flex flex-wrap gap-1.5">
+                <span class="text-xs text-gray-400">Try:</span>
+                <button type="button" class="example-addr text-xs text-blue-500 hover:text-blue-700 underline"
+                        data-address="0x6967ceF6Ff12397c9c760e031b793153139F7A25">
+                  ETH whale (2 pos)
+                </button>
+                <button type="button" class="example-addr text-xs text-blue-500 hover:text-blue-700 underline"
+                        data-address="0xb0BC021DABA3f2d737bb529c7Eea2a783aE5208b">
+                  Multi-vault (5 pos)
+                </button>
+              </div>
+            </div>
+            
+            <!-- Or NFT ID -->
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-200"></div>
+              </div>
+              <div class="relative flex justify-center text-xs">
+                <span class="px-2 bg-white text-gray-500">or specify NFT ID</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Position NFT ID
+                <span class="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input type="text" 
+                     id="nftId" 
+                     placeholder="12345"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm">
+            </div>
+            
+            <!-- Statement Period -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Statement Period</label>
+              <input type="text" 
+                     id="statementPeriod" 
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+            
+            <!-- Account Holder Name (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Account Holder Name
+                <span class="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input type="text"
+                     id="holderName"
+                     placeholder="Your Name"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+
+            <!-- Personal Address (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Personal Address
+                <span class="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input type="text"
+                     id="holderAddress"
+                     placeholder="123 Main St, City, State ZIP"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </div>
+            
+            <!-- Generate Button -->
+            <button type="submit" 
+                    id="generateBtn"
+                    class="w-full bg-fluid-accent hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-md transition-colors flex items-center justify-center space-x-2">
+              <span>Generate Statement</span>
+            </button>
+            
+          </form>
+          
+          <!-- Status Messages -->
+          <div id="statusArea" class="mt-4 hidden">
+            <div class="flex items-center space-x-2 text-sm">
+              <div class="spinner"></div>
+              <span id="statusText" class="text-gray-600">Initializing...</span>
+            </div>
+          </div>
+          
+          <!-- Error Messages -->
+          <div id="errorArea" class="mt-4 hidden">
+            <div class="bg-red-50 border border-red-200 rounded-md p-3">
+              <p class="text-red-700 text-sm" id="errorText"></p>
+            </div>
+          </div>
+          
+          <!-- Download Button (shown after generation) -->
+          <div id="downloadArea" class="mt-4 hidden">
+            <button id="downloadBtn"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors flex items-center justify-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span>Download PDF</span>
+            </button>
+          </div>
+          
+          <!-- Privacy Notice -->
+          <div class="mt-6 pt-4 border-t border-gray-200">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Privacy</h3>
+            <ul class="text-xs text-gray-500 space-y-1">
+              <li>✓ All processing happens locally in your browser</li>
+              <li>✓ No data sent to any server (except RPC)</li>
+              <li>✓ No tracking or analytics</li>
+              <li>✓ Open source code</li>
+            </ul>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- Right Panel - PDF Preview -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-800">Preview</h2>
+            <div id="previewInfo" class="text-sm text-gray-500"></div>
+          </div>
+          
+          <!-- Preview Area -->
+          <div id="previewContainer" class="pdf-preview min-h-[600px] lg:min-h-[800px] flex items-center justify-center p-8">
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center">
+              <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 class="text-lg font-medium text-gray-300 mb-2">No Statement Generated</h3>
+              <p class="text-gray-400 text-sm max-w-xs mx-auto">
+                Enter your wallet address and click "Generate Statement" to create a PDF preview
+              </p>
+            </div>
+            
+            <!-- PDF iframe (hidden initially) -->
+            <iframe id="pdfPreview" 
+                    class="hidden w-full bg-white rounded shadow-lg"
+                    style="height: 800px; max-height: 90vh;">
+            </iframe>
+            
+          </div>
+        </div>
+        
+        <!-- Position Summary Cards (shown after fetching) -->
+        <div id="positionSummary" class="hidden mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-lg shadow-md p-4">
+            <p class="text-sm text-gray-500">Total Collateral</p>
+            <p id="totalCollateral" class="text-2xl font-bold text-gray-800">-</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-md p-4">
+            <p class="text-sm text-gray-500">Total Debt</p>
+            <p id="totalDebt" class="text-2xl font-bold text-gray-800">-</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-md p-4">
+            <p class="text-sm text-gray-500">Positions Found</p>
+            <p id="positionCount" class="text-2xl font-bold text-gray-800">-</p>
+          </div>
+        </div>
+        
+      </div>
+      
+    </div>
+  </main>
+  
+  <!-- How to Use -->
+  <section class="bg-white border-t border-gray-200 mt-12">
+    <div class="max-w-7xl mx-auto px-4 py-12">
+      <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">How to Use</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <!-- Step 1 -->
+        <div class="text-center">
+          <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
+          <h3 class="font-semibold text-gray-800 mb-2">Enter Your Address</h3>
+          <p class="text-sm text-gray-600">Paste your Ethereum wallet address or a specific position NFT ID. No private keys or seed phrases needed — this is read-only.</p>
+        </div>
+        <!-- Step 2 -->
+        <div class="text-center">
+          <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
+          <h3 class="font-semibold text-gray-800 mb-2">Add Etherscan Key (Optional)</h3>
+          <p class="text-sm text-gray-600">For transaction history, add a free Etherscan API key.
+            <a href="https://etherscan.io/myapikey" target="_blank" class="text-blue-500 hover:text-blue-700 underline">Get one here ↗</a>
+            — it only takes a minute to sign up.</p>
+        </div>
+        <!-- Step 3 -->
+        <div class="text-center">
+          <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
+          <h3 class="font-semibold text-gray-800 mb-2">Generate & Download</h3>
+          <p class="text-sm text-gray-600">Click Generate to create a professional PDF margin statement with your positions, collateral schedule, and transaction activity.</p>
+        </div>
+      </div>
+
+      <!-- Privacy & Open Source -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+            <span class="text-green-500 mr-2">&#x1f512;</span> 100% Private
+          </h3>
+          <ul class="text-sm text-gray-600 space-y-2">
+            <li>Everything runs locally in your browser — nothing is sent to any backend server.</li>
+            <li>No accounts, no tracking, no cookies, no analytics.</li>
+            <li>The only network requests are to the Ethereum RPC (for on-chain data), CoinGecko (for prices), and optionally Etherscan (for transaction history).</li>
+            <li>Use your own RPC endpoint for maximum privacy.</li>
+          </ul>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+            <span class="mr-2">&#128187;</span> Fully Open Source
+          </h3>
+          <ul class="text-sm text-gray-600 space-y-2">
+            <li>The entire source code is available on GitHub for anyone to audit.</li>
+            <li>No build step required — just plain HTML, CSS, and JavaScript.</li>
+            <li>Run it locally by cloning the repo and opening <code class="bg-gray-200 px-1 rounded text-xs">index.html</code> or running <code class="bg-gray-200 px-1 rounded text-xs">npm start</code>.</li>
+            <li>MIT licensed — fork it, modify it, make it your own.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-gray-400">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="text-sm">
+          <p>This tool is not affiliated with Instadapp or Fluid.</p>
+          <p>Use at your own risk. Always verify data on-chain.</p>
+        </div>
+        <div class="flex items-center space-x-4 text-sm">
+          <a href="https://fluid.instadapp.io" target="_blank" class="hover:text-white">Fluid App ↗</a>
+          <a href="https://docs.fluid.instadapp.io" target="_blank" class="hover:text-white">Docs ↗</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- App Scripts -->
+  <script type="module" src="js/app.js"></script>
+  
+</body>
+</html>
